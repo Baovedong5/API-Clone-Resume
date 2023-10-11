@@ -25,7 +25,7 @@ export class FilesController {
   @Public()
   @Post('upload')
   @ResponseMessage('Upload Single File')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('fileUpload'))
   uploadFile(
     @UploadedFile(
       new ParseFilePipeBuilder()

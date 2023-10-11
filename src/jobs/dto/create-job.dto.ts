@@ -16,6 +16,9 @@ class Company {
 
   @IsNotEmpty({ message: 'Name không được để trống' })
   name: string;
+
+  @IsNotEmpty({ message: 'Logo không được để trống' })
+  logo: string;
 }
 
 export class CreateJobDto {
@@ -38,6 +41,9 @@ export class CreateJobDto {
 
   @IsNotEmpty({ message: 'Description không được để trống' })
   description: string;
+
+  @IsNotEmpty({ message: 'Location không được để trống' })
+  location: string;
 
   @IsNotEmpty({ message: 'Description không được để trống' })
   isActive: boolean;

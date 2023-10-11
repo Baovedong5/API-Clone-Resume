@@ -28,7 +28,8 @@ export class JobsController {
   }
 
   @Get()
-  @ResponseMessage('Fetch user with pagination')
+  @Public()
+  @ResponseMessage('Fetch jobs with pagination')
   findAll(
     @Query('current') currentPage: string,
     @Query('pageSize') limit: string,
@@ -38,6 +39,7 @@ export class JobsController {
   }
 
   @Get(':id')
+  @Public()
   @ResponseMessage('Fetch a job by id')
   findOne(@Param('id') id: string) {
     return this.jobsService.findOne(id);
