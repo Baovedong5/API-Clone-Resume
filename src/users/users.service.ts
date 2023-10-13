@@ -9,11 +9,15 @@ import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User as UserM, UserDocument } from './schemas/user.schema';
 import { IUser } from './users.interface';
+import { Role, RoleDocument } from 'src/roles/schemas/role.schema';
+import { USER_ROLE } from 'src/databases/sample';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(UserM.name) private userModel: SoftDeleteModel<UserDocument>,
+
+    @InjectModel(Role.name) private roleModel: SoftDeleteModel<RoleDocument>,
   ) {}
 
   hashPassword = (password: string) => {
@@ -58,10 +62,14 @@ export class UsersService {
   async register(user: RegisterUserDto) {
     const { name, email, password, age, gender, address } = user;
 
+    //check email
     const isExistEmail = await this.userModel.findOne({ email });
     if (isExistEmail) {
       throw new BadRequestException(`Email ${email} đã tồn tại`);
     }
+
+    //fetch user role
+    const userRole = await this.roleModel.findOne({ name: USER_ROLE });
 
     const hashPassword = this.hashPassword(password);
     let newRegister = await this.userModel.create({
@@ -71,7 +79,7 @@ export class UsersService {
       age,
       gender,
       address,
-      role: 'USER',
+      role: userRole?._id,
     });
 
     return newRegister;
@@ -123,7 +131,7 @@ export class UsersService {
       .findOne({
         email: username,
       })
-      .populate({ path: 'role', select: { name: 1, permission: 1 } });
+      .populate({ path: 'role', select: { name: 1 } });
   }
 
   async update(updateUserDto: UpdateUserDto, user: IUser) {
@@ -176,6 +184,9 @@ export class UsersService {
   };
 
   findUserByToken = async (refreshToken: string) => {
-    return await this.userModel.findOne({ refreshToken });
+    return await this.userModel.findOne({ refreshToken }).populate({
+      path: 'role',
+      select: { name: 1 },
+    });
   };
 }

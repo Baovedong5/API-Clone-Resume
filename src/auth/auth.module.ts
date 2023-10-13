@@ -9,11 +9,13 @@ import { UsersModule } from 'src/users/users.module';
 import { LocalStrategy } from './passport/local.strategy';
 import { JwtStrategy } from './passport/jwt.strategy';
 import { AuthController } from './auth.controller';
+import { RolesModule } from 'src/roles/roles.module';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
+    RolesModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

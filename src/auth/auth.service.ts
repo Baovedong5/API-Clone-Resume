@@ -7,6 +7,7 @@ import { Response } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { IUser } from 'src/users/users.interface';
 import { RegisterUserDto } from 'src/users/dto/create-user.dto';
+import { RolesService } from 'src/roles/roles.service';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private roleService: RolesService,
   ) {}
 
   //username va password la 2 tham so thu vien passort nem ve
@@ -25,7 +27,16 @@ export class AuthService {
         user.password,
       );
       if (isValidPass === true) {
-        return user;
+        const userRole = user.role as unknown as { _id: string; name: string };
+
+        const temp = await this.roleService.findOne(userRole._id);
+
+        const objectUser = {
+          ...user.toObject(),
+          permissions: temp?.permissions ?? [],
+        };
+
+        return objectUser;
       }
     }
     return null;
@@ -41,7 +52,7 @@ export class AuthService {
   };
 
   async login(user: IUser, response: Response) {
-    const { _id, name, email, role } = user;
+    const { _id, name, email, role, permissions } = user;
     const payload = {
       sub: 'token login',
       iss: 'from server',
@@ -69,6 +80,7 @@ export class AuthService {
         name,
         email,
         role,
+        permissions,
       },
     };
   }
@@ -102,7 +114,15 @@ export class AuthService {
 
         const refresh_token = this.createRefreshToken(payload);
 
+        //update user with refresh token
         await this.usersService.updateUserToken(refreshToken, _id.toString());
+
+        //fetch user's role
+        const userRole = user.role as unknown as { _id: string; name: string };
+        const temp = await this.roleService.findOne(userRole._id);
+
+        //set fresh_token as cookie
+        response.clearCookie('refresh_token');
 
         response.cookie('refresh_token', refresh_token, {
           httpOnly: true,
@@ -116,6 +136,7 @@ export class AuthService {
             name,
             email,
             role,
+            permissions: temp?.permissions ?? [],
           },
         };
       } else {

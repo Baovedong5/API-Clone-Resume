@@ -14,10 +14,14 @@ import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
 import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 import { IUser } from 'src/users/users.interface';
+import { RolesService } from 'src/roles/roles.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private roleService: RolesService,
+  ) {}
 
   @Public()
   @ResponseMessage('Register a new user')
@@ -36,7 +40,9 @@ export class AuthController {
 
   @ResponseMessage('Get user infomation')
   @Get('/account')
-  handleGetAccount(@User() user: IUser) {
+  async handleGetAccount(@User() user: IUser) {
+    const temp = (await this.roleService.findOne(user.role._id)) as any;
+    user.permissions = temp.permissions;
     return { user };
   }
 
