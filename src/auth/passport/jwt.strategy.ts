@@ -4,10 +4,14 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { IUser } from 'src/users/users.interface';
+import { RolesService } from 'src/roles/roles.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private roleService: RolesService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -17,11 +21,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: IUser) {
     const { _id, name, email, role } = payload;
+
+    //gan permission vao req.user
+    const userRole = role as unknown as { _id: string; name: string };
+
+    const temp = (await this.roleService.findOne(userRole._id)).toObject();
+
     return {
       _id,
       name,
       email,
       role,
+      permissions: temp?.permissions ?? [],
     };
   }
 }

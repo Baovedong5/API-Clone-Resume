@@ -4,6 +4,7 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import helmet from 'helmet';
 
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
@@ -32,6 +33,9 @@ async function bootstrap() {
     preflightContinue: false,
     credentials: true,
   });
+
+  //config helmet
+  app.use(helmet());
 
   //config versioning
   app.setGlobalPrefix('api');
